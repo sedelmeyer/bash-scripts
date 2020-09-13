@@ -75,7 +75,7 @@ class TestPDFCompress(TestCase):
         with self.assertRaises(ValueError):
             compress_pdf.PDFCompressor(self.source_dir, self.source_dir)
 
-    def test_make_dir_list_recurse_false(self):
+    def test_generate_source_dict_recurse_false(self):
         """Ensure make_dir_list method returns only source_dir when recurse==False"""
         self.PDFComp.generate_source_dict()
         source_dict = self.PDFComp.source_dict
@@ -84,7 +84,7 @@ class TestPDFCompress(TestCase):
         self.assertEqual(len(source_dict[self.source_dir]), 1)
         self.assertTrue(self.source_dir in source_dict.keys())
 
-    def test_make_dir_list_recurse_true(self):
+    def test_generate_source_dict_recurse_true(self):
         """Ensure make_dir_list method returns all subdirs when recurse==True"""
         self.PDFComp.recursive = True
         self.PDFComp.generate_source_dict()
@@ -92,3 +92,15 @@ class TestPDFCompress(TestCase):
         self.assertEqual(type(source_dict), dict)
         self.assertEqual(len(source_dict), self.dir_depth)
         self.assertListEqual(self.dir_list, list(source_dict.keys()))
+
+    def test_generate_output_dict(self):
+        """Ensure generate_output_dict returns mirrored dict"""
+        self.PDFComp.recursive = True
+        self.PDFComp.generate_source_dict()
+        self.PDFComp.generate_output_dict()
+        source_dict = self.PDFComp.source_dict
+        output_dict = self.PDFComp.output_dict
+        self.assertEqual(type(output_dict), dict)
+        self.assertEqual(len(source_dict), len(output_dict))
+        for key in output_dict.keys():
+            self.assertTrue(self.output_dir in key)

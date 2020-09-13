@@ -112,39 +112,37 @@ class PDFCompressor:
             return output_dir
 
     def generate_source_dict(self):
-        """Walk source_dir to generate dictionary of source directories and files"""
+        """Walk source_dir to generate dict of sub-dirs and corresponding files"""
         if self.recursive:
             dir_walk = [(x[0], x[2]) for x in os.walk(self.source_dir)]
             print(dir_walk)
             self.source_dict = {
-                dir_name: [
-                    os.path.split(filename)[1]
-                    for filename in file_list
-                    if self.ext_type in filename
-                ]
+                dir_name: {
+                    "files": [
+                        os.path.split(filename)[1]
+                        for filename in file_list
+                        if self.ext_type in filename
+                    ]
+                }
                 for (dir_name, file_list) in dir_walk
             }
         else:
+            # if not recursive store only top-level directory and file names
             file_list = glob.glob("{}/*{}".format(self.source_dir, self.ext_type))
             self.source_dict = {
-                self.source_dir: [
-                    os.path.split(filename)[1]
-                    for filename in file_list
-                    if self.ext_type in filename
-                ]
+                self.source_dir: {
+                    "files": [
+                        os.path.split(filename)[1]
+                        for filename in file_list
+                        if self.ext_type in filename
+                    ]
+                }
             }
 
-    def list_dirfiles(self, dirname, recursive=True):
-        """
-        Generates a list of files in a directory that have desired extension
-        types as specified.
-        :param directory: str pathname of target parent directory
-        :param ext_list: list of strings specifying target extension types
-            e.g. ['.csv', '.xls']
-        :return: list of filenames for files with matching extension type
-        """
-        filenames = glob.glob(
-            "{}/*{}".format(dirname, self.ext_type), recursive=self.recursive
-        )
-        n_files = len(filenames)
-        return n_files, filenames
+    def generate_output_dict(self):
+        """Mirror source_dict to generate output_dict dirs and corresponding files"""
+        self.output_dict = {
+            key.replace(self.source_dir, self.output_dir): item
+            for key, item in self.source_dict.items()
+        }
+        print(self.output_dict)
