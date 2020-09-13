@@ -37,9 +37,9 @@ class TestPDFCompress(TestCase):
             self.output_dir = os.path.join(tmpdir, "test_output")
             # instantiate PDFCompressor object for tests
             self.PDFComp = compress_pdf.PDFCompressor(
-                source_dir=self.dir_list[0], output_dir=self.output_dir
+                source_dir=self.dir_list[0], output_dir=self.output_dir, ext_type=".txt"
             )
-            print([x for x in os.walk(tmpdir)])
+            # print([x for x in os.walk(tmpdir)])
             # ensure context manager closes after tests
             self.addCleanup(stack.pop_all().close)
 
@@ -77,15 +77,18 @@ class TestPDFCompress(TestCase):
 
     def test_make_dir_list_recurse_false(self):
         """Ensure make_dir_list method returns only source_dir when recurse==False"""
-        self.PDFComp.make_dir_list()
-        dir_list = self.PDFComp.dir_list
-        self.assertEqual(len(dir_list), 1)
-        self.assertTrue(self.source_dir in dir_list)
+        self.PDFComp.generate_source_dict()
+        source_dict = self.PDFComp.source_dict
+        self.assertEqual(type(source_dict), dict)
+        self.assertEqual(len(source_dict), 1)
+        self.assertEqual(len(source_dict[self.source_dir]), 1)
+        self.assertTrue(self.source_dir in source_dict.keys())
 
     def test_make_dir_list_recurse_true(self):
         """Ensure make_dir_list method returns all subdirs when recurse==True"""
         self.PDFComp.recursive = True
-        self.PDFComp.make_dir_list()
-        dir_list = self.PDFComp.dir_list
-        self.assertEqual(len(dir_list), self.dir_depth)
-        self.assertListEqual(self.dir_list, dir_list)
+        self.PDFComp.generate_source_dict()
+        source_dict = self.PDFComp.source_dict
+        self.assertEqual(type(source_dict), dict)
+        self.assertEqual(len(source_dict), self.dir_depth)
+        self.assertListEqual(self.dir_list, list(source_dict.keys()))

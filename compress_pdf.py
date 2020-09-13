@@ -111,12 +111,28 @@ class PDFCompressor:
         else:
             return output_dir
 
-    def make_dir_list(self):
-        """Generate list of directories in which to compress files"""
+    def generate_source_dict(self):
+        """Walk source_dir to generate dictionary of source directories and files"""
         if self.recursive:
-            self.dir_list = [x[0] for x in os.walk(self.source_dir)]
+            dir_walk = [(x[0], x[2]) for x in os.walk(self.source_dir)]
+            print(dir_walk)
+            self.source_dict = {
+                dir_name: [
+                    os.path.split(filename)[1]
+                    for filename in file_list
+                    if self.ext_type in filename
+                ]
+                for (dir_name, file_list) in dir_walk
+            }
         else:
-            self.dir_list = [self.source_dir]
+            file_list = glob.glob("{}/*{}".format(self.source_dir, self.ext_type))
+            self.source_dict = {
+                self.source_dir: [
+                    os.path.split(filename)[1]
+                    for filename in file_list
+                    if self.ext_type in filename
+                ]
+            }
 
     def list_dirfiles(self, dirname, recursive=True):
         """
