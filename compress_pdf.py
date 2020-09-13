@@ -64,8 +64,14 @@ extension_type = ".pdf"
 class PDFCompressor:
     """PDF compression class object"""
 
-    def __init__(self):
+    def __init__(
+        self, source_dir, output_dir, recursive=False, ext_type=extension_type
+    ):
         self.pkg_exists = self.check_pkg_installed(pkg=external_pkg)
+        self.source_dir = source_dir
+        self.output_dir = output_dir
+        self.recursive = recursive
+        self.ext_type = ext_type
 
     def check_pkg_installed(self, pkg):
         """Confirms external dependency is install"""
@@ -83,7 +89,14 @@ class PDFCompressor:
                 "script run again.".format(pkg)
             )
 
-    def list_dirfiles(dirname, ext_type, recursive=True):
+    def make_dir_list(self):
+        """Generate list of directories in which to compress files"""
+        if self.recursive:
+            self.dir_list = [x[0] for x in os.walk(self.source_dir)]
+        else:
+            self.dir_list = [self.source_dir]
+
+    def list_dirfiles(self, dirname, recursive=True):
         """
         Generates a list of files in a directory that have desired extension
         types as specified.
@@ -92,6 +105,8 @@ class PDFCompressor:
             e.g. ['.csv', '.xls']
         :return: list of filenames for files with matching extension type
         """
-        filenames = glob.glob("{}/*{}".format(dirname, ext_type), recursive=recursive)
+        filenames = glob.glob(
+            "{}/*{}".format(dirname, self.ext_type), recursive=self.recursive
+        )
         n_files = len(filenames)
         return n_files, filenames
