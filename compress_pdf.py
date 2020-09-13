@@ -68,7 +68,7 @@ class PDFCompressor:
         self, source_dir, output_dir, recursive=False, ext_type=extension_type
     ):
         self.pkg_exists = self.check_pkg_installed(pkg=external_pkg)
-        self.source_dir = source_dir
+        self.source_dir = self.check_source_dir(source_dir=source_dir)
         self.output_dir = output_dir
         self.recursive = recursive
         self.ext_type = ext_type
@@ -88,6 +88,17 @@ class PDFCompressor:
                 'Run "sudo apt install {0}" and then attempt '
                 "script run again.".format(pkg)
             )
+
+    def check_source_dir(self, source_dir):
+        """Confirms source_dir exists and raises error if it does not"""
+        if not os.path.isdir(source_dir):
+            sys.tracebacklimit = 0
+            raise ValueError(
+                "Invalid source directory value. The following directory does not "
+                "exist: {}".format(source_dir)
+            )
+        else:
+            return source_dir
 
     def make_dir_list(self):
         """Generate list of directories in which to compress files"""
