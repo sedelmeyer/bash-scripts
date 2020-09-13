@@ -69,7 +69,7 @@ class PDFCompressor:
     ):
         self.pkg_exists = self.check_pkg_installed(pkg=external_pkg)
         self.source_dir = self.check_source_dir(source_dir=source_dir)
-        self.output_dir = output_dir
+        self.output_dir = self.check_output_dir(output_dir=output_dir)
         self.recursive = recursive
         self.ext_type = ext_type
 
@@ -99,6 +99,17 @@ class PDFCompressor:
             )
         else:
             return source_dir
+
+    def check_output_dir(self, output_dir):
+        """Confirms output_dir does not already exist, if it does an error is raised"""
+        if os.path.isdir(output_dir):
+            sys.tracebacklimit = 0
+            raise ValueError(
+                "Output directory already exists. Please enter the name of the new "
+                "directory to which ouput files shall be saved."
+            )
+        else:
+            return output_dir
 
     def make_dir_list(self):
         """Generate list of directories in which to compress files"""
