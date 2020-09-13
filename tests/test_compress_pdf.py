@@ -65,6 +65,16 @@ class TestPDFCompress(TestCase):
         with self.assertRaises(ValueError):
             compress_pdf.PDFCompressor("test", "test")
 
+    def test_check_output_dir_exists(self):
+        """Ensure invalid output_dir creates self.output_dir attribute"""
+        PDFComp = compress_pdf.PDFCompressor(self.source_dir, self.output_dir)
+        self.assertEqual(self.output_dir, PDFComp.output_dir)
+
+    def test_check_output_dir_does_not_exist(self):
+        """Ensure existing output_dir raises ValueError"""
+        with self.assertRaises(ValueError):
+            compress_pdf.PDFCompressor(self.source_dir, self.source_dir)
+
     def test_make_dir_list_recurse_false(self):
         """Ensure make_dir_list method returns only source_dir when recurse==False"""
         self.PDFComp.make_dir_list()
