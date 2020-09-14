@@ -59,24 +59,37 @@ import sys
 
 external_pkg = "ghostscript"
 extension_type = ".pdf"
+quality_level = "printer"
+command_run_external_pkg = (
+    "ghostscript -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 "
+    "-dPrinted=false -dPDFSETTINGS=/<QUALITY> -dNOPAUSE -dQUIET -dBATCH "
+    "-sOutputFile=<OUTPUT> <SOURCE>"
+)
 
 
 class PDFCompressor:
     """PDF compression class object"""
 
     def __init__(
-        self, source_dir, output_dir, recursive=False, ext_type=extension_type
+        self,
+        source_dir,
+        output_dir,
+        output_quality=quality_level,
+        recursive=False,
+        ext_type=extension_type,
     ):
-        self.pkg_exists = self.check_pkg_installed(pkg=external_pkg)
+        self.pkg_exists = self.check_pkg_installed()
         self.source_dir = self.check_source_dir(source_dir=source_dir)
         self.output_dir = self.check_output_dir(output_dir=output_dir)
+        self.output_quality = output_quality
         self.recursive = recursive
         self.ext_type = ext_type
 
-    def check_pkg_installed(self, pkg):
+    def check_pkg_installed(self):
         """Confirms external dependency is install"""
+        command_verify_external_pkg = "dpkg -s {}".format(external_pkg)
         output = subprocess.run(
-            shlex.split("dpkg -s {}".format(pkg)), capture_output=True
+            shlex.split(command_verify_external_pkg), capture_output=True
         )
         pkg_exists = output.returncode == 0
         if pkg_exists:
@@ -86,7 +99,7 @@ class PDFCompressor:
             raise SystemError(
                 "{0} package is required for PDF compression. "
                 'Run "sudo apt install {0}" and then attempt '
-                "script run again.".format(pkg)
+                "script run again.".format(external_pkg)
             )
 
     def check_source_dir(self, source_dir):
@@ -159,4 +172,19 @@ class PDFCompressor:
                 ]
             )
         setattr(self, dict_name, directory_dict)
-        print(directory_dict)
+
+    def compress_directory_files(self, source_dirname, output_dirname):
+        """Compress files for a specific source directory and save to output"""
+        output_dirname = self.check_output_dir(output_dirname)
+        os.mkdir(output_dirname)
+
+        for filename in self.source_dict[source_dirname]["files"]:
+            source_filepath = os.path.join(source_dirname, filename)
+            output_filepath = os.path.join(output_dirname, filename)
+            subprocess.run(
+                shlex.split(
+                    command_run_external_pkg.replace("<QUALITY>", self.output_quality)
+                    .replace("<OUTPUT>", output_filepath)
+                    .replace("<SOURCE>", source_filepath)
+                )
+            )

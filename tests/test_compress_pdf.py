@@ -55,21 +55,25 @@ class TestPDFCompress(TestCase):
         with self.assertRaises(SystemError):
             compress_pdf.PDFCompressor(self.source_dir, "test")
 
+    @mock.patch("compress_pdf.external_pkg", "nano")
     def test_check_source_dir_exists(self):
         """Ensure valid source_dir creates self.source_dir attribute"""
         PDFComp = compress_pdf.PDFCompressor(self.source_dir, "test")
         self.assertEqual(self.source_dir, PDFComp.source_dir)
 
+    @mock.patch("compress_pdf.external_pkg", "nano")
     def test_check_source_dir_does_not_exist(self):
         """Ensure invalid source_dir raises ValueError"""
         with self.assertRaises(ValueError):
             compress_pdf.PDFCompressor("test", "test")
 
+    @mock.patch("compress_pdf.external_pkg", "nano")
     def test_check_output_dir_exists(self):
         """Ensure invalid output_dir creates self.output_dir attribute"""
         PDFComp = compress_pdf.PDFCompressor(self.source_dir, self.output_dir)
         self.assertEqual(self.output_dir, PDFComp.output_dir)
 
+    @mock.patch("compress_pdf.external_pkg", "nano")
     def test_check_output_dir_does_not_exist(self):
         """Ensure existing output_dir raises ValueError"""
         with self.assertRaises(ValueError):
@@ -111,9 +115,16 @@ class TestPDFCompress(TestCase):
         self.PDFComp.generate_source_dict()
         self.PDFComp.generate_dict_metrics(source=True)
         source_dict = self.PDFComp.source_dict
-        print(source_dict)
         self.assertEqual(type(source_dict), dict)
         self.assertEqual(self.dir_depth, len(source_dict))
         for dir_dict in source_dict.values():
             self.assertIn("count", dir_dict.keys())
             self.assertIn("bytes", dir_dict.keys())
+
+    @mock.patch("compress_pdf.command_run_external_pkg", "cp <SOURCE> <OUTPUT>")
+    def test_compress_directory_files(self):
+        """Ensure external pkg command runs successfully for all files in directory"""
+        self.PDFComp.generate_source_dict()
+        self.PDFComp.generate_output_dict()
+        self.PDFComp.compress_directory_files(self.source_dir, self.output_dir)
+        self.assertTrue(os.path.isfile(os.path.join(self.output_dir, "test0.txt")))
