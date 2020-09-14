@@ -122,9 +122,9 @@ class TestPDFCompress(TestCase):
             self.assertIn("bytes", dir_dict.keys())
 
     @mock.patch("compress_pdf.command_run_external_pkg", "cp <SOURCE> <OUTPUT>")
-    def test_compress_directory_files(self):
+    def test_run_external_pkg_command(self):
         """Ensure external pkg command runs successfully for all files in directory"""
         self.PDFComp.generate_source_dict()
         self.PDFComp.generate_output_dict()
-        self.PDFComp.compress_directory_files(self.source_dir, self.output_dir)
+        self.PDFComp.run_external_pkg_command(self.source_dir, self.output_dir)
         self.assertTrue(os.path.isfile(os.path.join(self.output_dir, "test0.txt")))

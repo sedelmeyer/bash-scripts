@@ -173,7 +173,7 @@ class PDFCompressor:
             )
         setattr(self, dict_name, directory_dict)
 
-    def compress_directory_files(self, source_dirname, output_dirname):
+    def run_external_pkg_command(self, source_dirname, output_dirname):
         """Compress files for a specific source directory and save to output"""
         output_dirname = self.check_output_dir(output_dirname)
         os.mkdir(output_dirname)
