@@ -188,3 +188,10 @@ class PDFCompressor:
                     .replace("<SOURCE>", source_filepath)
                 )
             )
+
+    def iterate_directories_external_pkg_command(self):
+        """Loop through directories to run external pkg command on each"""
+        for source_dirname, output_dirname in zip(
+            self.source_dict.keys(), self.output_dict.keys()
+        ):
+            self.run_external_pkg_command(source_dirname, output_dirname)

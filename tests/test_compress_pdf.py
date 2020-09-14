@@ -128,3 +128,14 @@ class TestPDFCompress(TestCase):
         self.PDFComp.generate_output_dict()
         self.PDFComp.run_external_pkg_command(self.source_dir, self.output_dir)
         self.assertTrue(os.path.isfile(os.path.join(self.output_dir, "test0.txt")))
+
+    @mock.patch("compress_pdf.command_run_external_pkg", "cp <SOURCE> <OUTPUT>")
+    def test_iterate_directories_external_pkg_command(self):
+        """Ensure external pkg command runs successfully for all files in directory"""
+        self.PDFComp.recursive = True
+        self.PDFComp.generate_source_dict()
+        self.PDFComp.generate_output_dict()
+        self.PDFComp.iterate_directories_external_pkg_command()
+        output_files = [x[2][0] for x in os.walk(self.output_dir)]
+        source_files = ["test{}.txt".format(i) for i in range(self.dir_depth)]
+        self.assertListEqual(output_files, source_files)
