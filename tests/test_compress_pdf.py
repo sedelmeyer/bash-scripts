@@ -104,3 +104,16 @@ class TestPDFCompress(TestCase):
         self.assertEqual(len(source_dict), len(output_dict))
         for key in output_dict.keys():
             self.assertTrue(self.output_dir in key)
+
+    def test_generate_dict_metrics_source(self):
+        """Ensure generate_dict_metrics adds counts and bytes to dictionary"""
+        self.PDFComp.recursive = True
+        self.PDFComp.generate_source_dict()
+        self.PDFComp.generate_dict_metrics(source=True)
+        source_dict = self.PDFComp.source_dict
+        print(source_dict)
+        self.assertEqual(type(source_dict), dict)
+        self.assertEqual(self.dir_depth, len(source_dict))
+        for dir_dict in source_dict.values():
+            self.assertIn("count", dir_dict.keys())
+            self.assertIn("bytes", dir_dict.keys())

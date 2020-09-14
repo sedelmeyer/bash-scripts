@@ -115,7 +115,6 @@ class PDFCompressor:
         """Walk source_dir to generate dict of sub-dirs and corresponding files"""
         if self.recursive:
             dir_walk = [(x[0], x[2]) for x in os.walk(self.source_dir)]
-            print(dir_walk)
             self.source_dict = {
                 dir_name: {
                     "files": [
@@ -145,4 +144,19 @@ class PDFCompressor:
             key.replace(self.source_dir, self.output_dir): item
             for key, item in self.source_dict.items()
         }
-        print(self.output_dict)
+
+    def generate_dict_metrics(self, source=True):
+        """Calculate and add basic count and byte-size metrics to directory dict"""
+        # dict_name = "self.{}_dict".format("source" if source else "output")
+        dict_name = "{}_dict".format("source" if source else "output")
+        directory_dict = getattr(self, dict_name)
+        for dirname in directory_dict.keys():
+            directory_dict[dirname]["count"] = len(directory_dict[dirname]["files"])
+            directory_dict[dirname]["bytes"] = sum(
+                [
+                    os.stat(os.path.join(dirname, filename)).st_size
+                    for filename in directory_dict[dirname]["files"]
+                ]
+            )
+        setattr(self, dict_name, directory_dict)
+        print(directory_dict)
