@@ -7,9 +7,9 @@ This is a python-based shell script that can be used to compress PDF files in a
 Debian-based Linux environment.
 
 To accomplish this, this script invokes the external Ghostscript package. Therefore,
-ghostscript is a required dependency or any system in which you run this script.
+ghostscript is a required dependency on any system in which you run this script.
 
-Otherwise than that external dependency, this script uses only Python standard
+Other than that external dependency, this script uses only Python standard
 libraries. Therefore, no third-party Python libraries are required.
 
 REQUIREMENTS:
@@ -19,7 +19,7 @@ REQUIREMENTS:
 
 .. note::
 
-   This script will work on other unix-based OS's, however, the
+   This script will probably work on other unix-like OS's, however, the
    ``check_pkg_installation`` function will need to be modified to check the appropriate
    package manager for your system (rather than Debian's ``dpkg`` manager)
 
@@ -39,14 +39,14 @@ REQUIREMENTS:
 
    Requirements backlog, base functionality:
 
-     * Check external package is installed (exit if not)
-     * Identify PDF filepaths in source directory
-     * Identify and store the number of files and their aggregate size
-     * Check for / make output directory
+     * X Check external package is installed (exit if not)
+     * X Identify PDF filepaths in source directory
+     * X Identify and store the number of files and their aggregate size
+     * X Check for / make output directory
      * Report number of files, original dirname, and output dirname
      * Report size of original files
      * Generate list of output PDF filepaths
-     * Iterate through list of PDF files using external package and save to output dir
+     * X Iterate through list of PDF files using external package and save to output dir
      * Report and store the size of the outputted files
      * Calculate and report absolute size reduction and compression rate
 
@@ -63,7 +63,7 @@ quality_level = "printer"
 command_run_external_pkg = (
     "ghostscript -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 "
     "-dPrinted=false -dPDFSETTINGS=/<QUALITY> -dNOPAUSE -dQUIET -dBATCH "
-    "-sOutputFile=<OUTPUT> <SOURCE>"
+    '-sOutputFile="<OUTPUT>" "<SOURCE>"'
 )
 
 
@@ -165,12 +165,11 @@ class PDFCompressor:
         directory_dict = getattr(self, dict_name)
         for dirname in directory_dict.keys():
             directory_dict[dirname]["count"] = len(directory_dict[dirname]["files"])
-            directory_dict[dirname]["bytes"] = sum(
-                [
-                    os.stat(os.path.join(dirname, filename)).st_size
-                    for filename in directory_dict[dirname]["files"]
-                ]
-            )
+            directory_dict[dirname]["f_bytes"] = [
+                os.stat(os.path.join(dirname, filename)).st_size
+                for filename in directory_dict[dirname]["files"]
+            ]
+            directory_dict[dirname]["d_bytes"] = sum(directory_dict[dirname]["f_bytes"])
         setattr(self, dict_name, directory_dict)
 
     def run_external_pkg_command(self, source_dirname, output_dirname):
@@ -195,3 +194,9 @@ class PDFCompressor:
             self.source_dict.keys(), self.output_dict.keys()
         ):
             self.run_external_pkg_command(source_dirname, output_dirname)
+
+    def run_job(self):
+        """Perform overall objective"""
+        self.generate_source_dict()
+        self.generate_output_dict()
+        self.iterate_directories_external_pkg_command()

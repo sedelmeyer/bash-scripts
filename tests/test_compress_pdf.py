@@ -118,8 +118,8 @@ class TestPDFCompress(TestCase):
         self.assertEqual(type(source_dict), dict)
         self.assertEqual(self.dir_depth, len(source_dict))
         for dir_dict in source_dict.values():
-            self.assertIn("count", dir_dict.keys())
-            self.assertIn("bytes", dir_dict.keys())
+            for dir_metric in dir_dict.keys():
+                self.assertIn(dir_metric, ["files", "count", "f_bytes", "d_bytes"])
 
     @mock.patch("compress_pdf.command_run_external_pkg", "cp <SOURCE> <OUTPUT>")
     def test_run_external_pkg_command(self):
