@@ -176,8 +176,10 @@ class PDFCompressor:
         """Compress files for a specific source directory and save to output"""
         output_dirname = self.check_output_dir(output_dirname)
         os.mkdir(output_dirname)
+        file_list = self.source_dict[source_dirname]["files"]
+        n_files = len(file_list)
 
-        for filename in self.source_dict[source_dirname]["files"]:
+        for i, filename in enumerate(file_list):
             source_filepath = os.path.join(source_dirname, filename)
             output_filepath = os.path.join(output_dirname, filename)
             subprocess.run(
@@ -187,6 +189,7 @@ class PDFCompressor:
                     .replace("<SOURCE>", source_filepath)
                 )
             )
+            self.progressbar(i, n_files)
 
     def iterate_directories_external_pkg_command(self):
         """Loop through directories to run external pkg command on each"""
@@ -195,8 +198,44 @@ class PDFCompressor:
         ):
             self.run_external_pkg_command(source_dirname, output_dirname)
 
+    def progressbar(self, step, max):
+        """Prints progress bar updates to stdout while iterating
+
+        Source:
+        https://stackoverflow.com/questions/3160699/python-progress-bar/15860757#15860757
+        """
+        progress = (step + 1) / max
+        barLength = 50  # Modify this to change the length of the progress bar
+        status = ""
+        if isinstance(progress, int):
+            progress = float(progress)
+        if not isinstance(progress, float):
+            progress = 0
+            status = "error: progress var must be float\r\n"
+        if progress < 0:
+            progress = 0
+            status = "Halt...\r\n"
+        if progress >= 1:
+            progress = 1
+            status = "Done...\r\n"
+        block = int(round(barLength * progress))
+        text = "\rPercent: [{0}] {1:.0f}% {2}".format(
+            "=" * block + "-" * (barLength - block), progress * 100, status
+        )
+        sys.stdout.write(text)
+        sys.stdout.flush()
+
     def run_job(self):
         """Perform overall objective"""
         self.generate_source_dict()
         self.generate_output_dict()
         self.iterate_directories_external_pkg_command()
+
+
+def main():
+    """Operations executed when calling this script from the command line"""
+    raise NotImplementedError
+
+
+if __name__ == "__main__":
+    main()
