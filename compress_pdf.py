@@ -225,6 +225,34 @@ class PDFCompressor:
             )
         )
 
+    def calculate_output_metrics(self):
+        """Wrapper function that calls generate_dict_metrics on output_dict"""
+        self.generate_dict_metrics(source=False)
+
+    def sum_total_all_directories(self, directory_dict, metric="d_bytes"):
+        """Adds up bytes or counts for all sub-directories contained within a dir dictionary"""
+        return sum(
+            [directory_dict[dirname][metric] for dirname in directory_dict.keys()]
+        )
+
+    def print_output_variance_summary(self):
+        """Prints a summary of output storage savings for all output aggregated"""
+        file_count = self.sum_total_all_directories(self.source_dict, metric="count")
+        source_size = self.sum_total_all_directories(self.source_dict, metric="d_bytes")
+        output_size = self.sum_total_all_directories(self.output_dict, metric="d_bytes")
+        space_savings = source_size - output_size
+        space_savings_rate = space_savings / source_size
+        bytes_formatted = self.print_bytes_formatted(space_savings)
+        print(source_size)
+        print(output_size)
+        print(space_savings)
+        print(
+            "A total of {} {} files have been processed, resulting in a {} ({:.1%}) "
+            "space savings.".format(
+                file_count, self.ext_type, bytes_formatted, space_savings_rate
+            )
+        )
+
     def progressbar(self, step, max):
         """Prints progress bar updates to stdout while iterating
 
@@ -257,6 +285,9 @@ class PDFCompressor:
         self.generate_source_dict()
         self.generate_output_dict()
         self.iterate_directories_external_pkg_command()
+        self.calculate_output_metrics()
+        print(self.output_dict)
+        self.print_output_variance_summary()
 
 
 def main():
