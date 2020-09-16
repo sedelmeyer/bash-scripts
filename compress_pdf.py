@@ -119,7 +119,7 @@ class PDFCompressor:
             sys.tracebacklimit = 0
             raise ValueError(
                 "Output directory already exists. Please enter the name of the new "
-                "directory to which ouput files shall be saved."
+                "(non-existent) directory to which ouput files shall be saved."
             )
         else:
             return output_dir
@@ -193,21 +193,37 @@ class PDFCompressor:
 
     def iterate_directories_external_pkg_command(self):
         """Loop through directories to run external pkg command on each"""
+        self.generate_dict_metrics(source=True)
         for source_dirname, output_dirname in zip(
             self.source_dict.keys(), self.output_dict.keys()
         ):
+            # print(self.source_dict[source_dirname])
+            self.print_source_dir_summary(
+                source_dirname,
+                self.source_dict[source_dirname]["count"],
+                self.source_dict[source_dirname]["d_bytes"],
+            )
             self.run_external_pkg_command(source_dirname, output_dirname)
 
     def print_bytes_formatted(self, bytes):
         """Prints in a human readable format in either KB, MB, or GB scale"""
         if bytes < 1e3:
-            return "{:.0f}".format(bytes)
+            return "{:.0f} bytes".format(bytes)
         elif bytes < 1e6:
             return "{:.0f}K".format(bytes / 1e3)
         elif bytes < 1e9:
             return "{:.0f}M".format(bytes / 1e6)
         else:
             return "{:.0f}G".format(bytes / 1e9)
+
+    def print_source_dir_summary(self, dirname, count, d_bytes):
+        """Prints a summary of source directory files"""
+        bytes_formatted = self.print_bytes_formatted(d_bytes)
+        print(
+            "Shrinking {} {} files ({} total) from {}".format(
+                count, self.ext_type, bytes_formatted, dirname
+            )
+        )
 
     def progressbar(self, step, max):
         """Prints progress bar updates to stdout while iterating
@@ -230,7 +246,7 @@ class PDFCompressor:
             progress = 1
             status = "Done...\r\n"
         block = int(round(barLength * progress))
-        text = "\rPercent: [{0}] {1:.0f}% {2}".format(
+        text = "\r [{0}] {1:.0f}% {2}".format(
             "=" * block + "-" * (barLength - block), progress * 100, status
         )
         sys.stdout.write(text)
