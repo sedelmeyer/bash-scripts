@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 compress_pdf
-============
+~~~~~~~~~~~~
 
 This is a python-based shell script that can be used to compress PDF files in a
 Debian-based Linux environment.
@@ -197,6 +197,17 @@ class PDFCompressor:
             self.source_dict.keys(), self.output_dict.keys()
         ):
             self.run_external_pkg_command(source_dirname, output_dirname)
+
+    def print_bytes_formatted(self, bytes):
+        """Prints in a human readable format in either KB, MB, or GB scale"""
+        if bytes < 1e3:
+            return "{:.0f}".format(bytes)
+        elif bytes < 1e6:
+            return "{:.0f}K".format(bytes / 1e3)
+        elif bytes < 1e9:
+            return "{:.0f}M".format(bytes / 1e6)
+        else:
+            return "{:.0f}G".format(bytes / 1e9)
 
     def progressbar(self, step, max):
         """Prints progress bar updates to stdout while iterating
