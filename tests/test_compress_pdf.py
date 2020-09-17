@@ -43,15 +43,20 @@ class TestPDFCompress(TestCase):
             # ensure context manager closes after tests
             self.addCleanup(stack.pop_all().close)
 
-    @mock.patch("compress_pdf.external_pkg", "nano")
-    def test_init_pkg_exists(self):
+    @mock.patch("compress_pdf.subprocess.run")
+    def test_init_pkg_exists(self, mocked_run):
         """Ensure installed package returns ``True``"""
+        mocked_run.return_value = mocked_run
+        mocked_run.returncode = 0
         PDFComp = compress_pdf.PDFCompressor(self.source_dir, "test")
+        mocked_run.assert_called()
         self.assertTrue(PDFComp.pkg_exists)
 
-    @mock.patch("compress_pdf.external_pkg", "sdcfedsawefvvffk")
-    def test_init_pkg_does_not_exist(self):
+    @mock.patch("compress_pdf.subprocess.run")
+    def test_init_pkg_does_not_exist(self, mocked_run):
         """Ensure uninstalled package raises error"""
+        mocked_run.return_value = mocked_run
+        mocked_run.returncode = 1
         with self.assertRaises(SystemError):
             compress_pdf.PDFCompressor(self.source_dir, "test")
 
