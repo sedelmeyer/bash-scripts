@@ -12,12 +12,17 @@ import compress_pdf  # noqa: E402
 class TestPDFCompress(TestCase):
     """Test class functionality"""
 
-    @mock.patch("compress_pdf.external_pkg", "nano")
     def setUp(self):
         """Set up temporary directory and file structure for tests"""
         with contextlib.ExitStack() as stack:
             # open temp directory context manager
             self.tmpdir = tmpdir = stack.enter_context(tempfile.TemporaryDirectory())
+            # set patch for subprocess.run to prevent accidental commands from running
+            self.mocked_run = stack.enter_context(
+                mock.patch("compress_pdf.subprocess.run")
+            )
+            self.mocked_run.return_value = self.mocked_run
+            self.mocked_run.returncode = 0
             # set source_dir pathname
             self.source_dir = os.path.join(tmpdir, "test0")
             # build nested test/test1/test2/ directory structure in temp directory
@@ -36,49 +41,45 @@ class TestPDFCompress(TestCase):
             # set output_dir pathname
             self.output_dir = os.path.join(tmpdir, "test_output")
             # instantiate PDFCompressor object for tests
+
             self.PDFComp = compress_pdf.PDFCompressor(
                 source_dir=self.dir_list[0], output_dir=self.output_dir, ext_type=".txt"
             )
+            # reset mock so we can assert calls in test cases
+            self.mocked_run.reset_mock()
             # print([x for x in os.walk(tmpdir)])
             # ensure context manager closes after tests
             self.addCleanup(stack.pop_all().close)
 
-    @mock.patch("compress_pdf.subprocess.run")
-    def test_init_pkg_exists(self, mocked_run):
+    def test_init_pkg_exists(self):
         """Ensure installed package returns ``True``"""
-        mocked_run.return_value = mocked_run
-        mocked_run.returncode = 0
+        self.mocked_run.returncode = 0
         PDFComp = compress_pdf.PDFCompressor(self.source_dir, "test")
-        mocked_run.assert_called()
+        self.mocked_run.assert_called_once()
         self.assertTrue(PDFComp.pkg_exists)
 
-    @mock.patch("compress_pdf.subprocess.run")
-    def test_init_pkg_does_not_exist(self, mocked_run):
+    def test_init_pkg_does_not_exist(self):
         """Ensure uninstalled package raises error"""
-        mocked_run.return_value = mocked_run
-        mocked_run.returncode = 1
+        self.mocked_run.returncode = 1
         with self.assertRaises(SystemError):
             compress_pdf.PDFCompressor(self.source_dir, "test")
+            self.mocked_run.assert_called_once()
 
-    @mock.patch("compress_pdf.external_pkg", "nano")
     def test_check_source_dir_exists(self):
         """Ensure valid source_dir creates self.source_dir attribute"""
         PDFComp = compress_pdf.PDFCompressor(self.source_dir, "test")
         self.assertEqual(self.source_dir, PDFComp.source_dir)
 
-    @mock.patch("compress_pdf.external_pkg", "nano")
     def test_check_source_dir_does_not_exist(self):
         """Ensure invalid source_dir raises ValueError"""
         with self.assertRaises(ValueError):
             compress_pdf.PDFCompressor("test", "test")
 
-    @mock.patch("compress_pdf.external_pkg", "nano")
     def test_check_output_dir_exists(self):
         """Ensure invalid output_dir creates self.output_dir attribute"""
         PDFComp = compress_pdf.PDFCompressor(self.source_dir, self.output_dir)
         self.assertEqual(self.output_dir, PDFComp.output_dir)
 
-    @mock.patch("compress_pdf.external_pkg", "nano")
     def test_check_output_dir_does_not_exist(self):
         """Ensure existing output_dir raises ValueError"""
         with self.assertRaises(ValueError):
