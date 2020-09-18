@@ -43,8 +43,8 @@ REQUIREMENTS:
      * X Identify PDF filepaths in source directory
      * X Identify and store the number of files and their aggregate size
      * X Check for / make output directory
-     * Report number of files, original dirname, and output dirname
-     * Report size of original files
+     * X Report number of files, original dirname, and output dirname
+     * X Report size of original files
      * Generate list of output PDF filepaths
      * X Iterate through list of PDF files using external package and save to output dir
      * Report and store the size of the outputted files
@@ -59,7 +59,8 @@ import sys
 
 external_pkg = "ghostscript"
 extension_type = ".pdf"
-quality_level = "printer"
+default_quality = "printer"
+command_verify_external_pkg = "dpkg -s {}".format(external_pkg)
 command_run_external_pkg = (
     "ghostscript -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 "
     "-dPrinted=false -dPDFSETTINGS=/<QUALITY> -dNOPAUSE -dQUIET -dBATCH "
@@ -74,7 +75,7 @@ class PDFCompressor:
         self,
         source_dir,
         output_dir,
-        output_quality=quality_level,
+        output_quality=default_quality,
         recursive=False,
         ext_type=extension_type,
     ):
@@ -87,7 +88,6 @@ class PDFCompressor:
 
     def check_pkg_installed(self):
         """Confirms external dependency is install"""
-        command_verify_external_pkg = "dpkg -s {}".format(external_pkg)
         output = subprocess.run(
             shlex.split(command_verify_external_pkg), capture_output=True
         )
@@ -205,10 +205,10 @@ class PDFCompressor:
             )
             self.run_external_pkg_command(source_dirname, output_dirname)
 
-    def print_bytes_formatted(self, bytes):
+    def format_bytes_value(self, bytes):
         """Prints in a human readable format in either KB, MB, or GB scale"""
         if bytes < 1e3:
-            return "{:.0f} bytes".format(bytes)
+            return "{:.0f}B".format(bytes)
         elif bytes < 1e6:
             return "{:.0f}K".format(bytes / 1e3)
         elif bytes < 1e9:
@@ -218,7 +218,7 @@ class PDFCompressor:
 
     def print_source_dir_summary(self, dirname, count, d_bytes):
         """Prints a summary of source directory files"""
-        bytes_formatted = self.print_bytes_formatted(d_bytes)
+        bytes_formatted = self.format_bytes_value(d_bytes)
         print(
             "Shrinking {} {} files ({} total) from {}".format(
                 count, self.ext_type, bytes_formatted, dirname
@@ -230,7 +230,7 @@ class PDFCompressor:
         self.generate_dict_metrics(source=False)
 
     def sum_total_all_directories(self, directory_dict, metric="d_bytes"):
-        """Adds up bytes or counts for all sub-directories contained within a dir dictionary"""
+        """Sums bytes or counts for all sub-dirs contained within a dir dictionary"""
         return sum(
             [directory_dict[dirname][metric] for dirname in directory_dict.keys()]
         )
@@ -242,7 +242,7 @@ class PDFCompressor:
         output_size = self.sum_total_all_directories(self.output_dict, metric="d_bytes")
         space_savings = source_size - output_size
         space_savings_rate = space_savings / source_size
-        bytes_formatted = self.print_bytes_formatted(space_savings)
+        bytes_formatted = self.format_bytes_value(space_savings)
         print(source_size)
         print(output_size)
         print(space_savings)
