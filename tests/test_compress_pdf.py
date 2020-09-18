@@ -8,6 +8,13 @@ from unittest import mock
 sys.path.append("..")
 import compress_pdf  # noqa: E402
 
+test_dirtree = {
+    "test0": ["test0a.txt", "test0b.not"],
+    "test0/test00": ["test00a.txt"],
+    "test0/test01": ["test01a.not"],
+    "test0/test01/test010": ["test010a.txt"],
+}
+
 
 class TestPDFCompress(TestCase):
     """Test class functionality"""
@@ -126,6 +133,14 @@ class TestPDFCompress(TestCase):
         for dir_dict in source_dict.values():
             for dir_metric in dir_dict.keys():
                 self.assertIn(dir_metric, ["files", "count", "f_bytes", "d_bytes"])
+
+    def test_format_bytes_value(self):
+        """Ensure format_bytes_value formats bytes values correctly"""
+        bytes_list = [123, 123e3, 123e6, 123e9]
+        bytes_test_list = ["123B", "123K", "123M", "123G"]
+        for bytes_value, test_value in zip(bytes_list, bytes_test_list):
+            formatted_value = self.PDFComp.format_bytes_value(bytes_value)
+            self.assertEqual(formatted_value, test_value)
 
     @mock.patch("compress_pdf.command_run_external_pkg", "cp <SOURCE> <OUTPUT>")
     def test_run_external_pkg_command(self):
