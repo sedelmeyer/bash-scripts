@@ -8,15 +8,51 @@ from unittest import mock
 sys.path.append("..")
 import compress_pdf  # noqa: E402
 
-test_dirtree = {
-    "test0": ["test0a.txt", "test0b.not"],
-    "test0/test00": ["test00a.txt"],
-    "test0/test01": ["test01a.not"],
-    "test0/test01/test010": ["test010a.txt"],
+source_dirtree = {
+    "source": ["test0a.txt", "test0b.not"],
+    "source/test00": ["test00a.txt"],
+    "source/test01": ["test01a.not"],
+    "source/test01/test010": ["test010a.txt"],
 }
 
 
-class TestPDFCompress(TestCase):
+def build_temp_directories(root_dir, dirtree_dict):
+    """Builds a directory structure based on keys in an input dict"""
+    dirlist = []
+    for dirname in dirtree_dict.keys():
+        dirlist.append(os.path.join(root_dir, dirname))
+    for dirname in dirlist:
+        os.mkdir(dirname)
+    return dirlist
+
+
+def build_temp_files(dirname, filesize_list):
+    """Builds source files for use in unittests"""
+    raise NotImplementedError
+
+
+class TestBuildData(TestCase):
+    """Test that test data build functions work as expected"""
+
+    def setUp(self):
+        with contextlib.ExitStack() as stack:
+            # open temp directory context manager
+            self.tmpdir = stack.enter_context(tempfile.TemporaryDirectory())
+            self.dirlist = build_temp_directories(self.tmpdir, source_dirtree)
+            self.addCleanup(stack.pop_all().close)
+
+    def test_build_temp_directories_names(self):
+        """Ensure temp directories are named as expected"""
+        for dirname_test, dirname in zip(source_dirtree.keys(), self.dirlist):
+            self.assertEqual(os.path.join(self.tmpdir, dirname_test), dirname)
+
+    def test_build_temp_directories_names(self):
+        """Ensure temp directories exist after build"""
+        for dirname in self.dirlist:
+            self.assertTrue(os.path.isdir(dirname))
+
+
+class TestShrinkFiles(TestCase):
     """Test class functionality"""
 
     def setUp(self):
