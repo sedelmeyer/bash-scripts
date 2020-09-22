@@ -46,7 +46,7 @@ class TestBuildData(TestCase):
         for dirname_test, dirname in zip(source_dirtree.keys(), self.dirlist):
             self.assertEqual(os.path.join(self.tmpdir, dirname_test), dirname)
 
-    def test_build_temp_directories_names(self):
+    def test_build_temp_directories_exists(self):
         """Ensure temp directories exist after build"""
         for dirname in self.dirlist:
             self.assertTrue(os.path.isdir(dirname))
