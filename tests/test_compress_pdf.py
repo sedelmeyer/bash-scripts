@@ -9,11 +9,14 @@ sys.path.append("..")
 import compress_pdf  # noqa: E402
 
 source_dirtree = {
-    "source": ["test0a.txt", "test0b.not"],
+    "source": ["test0a.txt", "test0b.txt"],
     "source/test00": ["test00a.txt"],
     "source/test01": ["test01a.not"],
     "source/test01/test010": ["test010a.txt"],
 }
+
+source_filesize = 1000
+output_filesizes = [-100, 0, 100, 0]
 
 
 def build_temp_directories(root_dir, dirtree_dict):
@@ -67,22 +70,23 @@ class TestShrinkFiles(TestCase):
             self.mocked_run.return_value = self.mocked_run
             self.mocked_run.returncode = 0
             # set source_dir pathname
-            self.source_dir = os.path.join(tmpdir, "test0")
-            # build nested test/test1/test2/ directory structure in temp directory
-            self.dir_list = [self.source_dir]
-            self.dir_depth = 3
-            for depth in range(1, self.dir_depth):
-                self.dir_list.append(
-                    os.path.join(self.dir_list[depth - 1], "test{}".format(depth))
-                )
-            for dirname in self.dir_list:
-                os.mkdir(dirname)
+            self.source_dir = os.path.join(tmpdir, "source")
+            # build nested source directory structure in temp directory
+            self.dir_list = build_temp_directories(self.tmpdir, source_dirtree)
+            # self.dir_list = [self.source_dir]
+            self.dir_count = 4
+            # for depth in range(1, self.dir_depth):
+            #     self.dir_list.append(
+            #         os.path.join(self.dir_list[depth - 1], "test{}".format(depth))
+            #     )
+            # for dirname in self.dir_list:
+            #     os.mkdir(dirname)
             # populate temp directories with test files
-            for i, dirname in enumerate(self.dir_list):
-                with open(os.path.join(dirname, "test{}.txt".format(i)), "a"):
-                    pass
+            # for i, dirname in enumerate(self.dir_list):
+            #     with open(os.path.join(dirname, "test{}.txt".format(i)), "a"):
+            #         pass
             # set output_dir pathname
-            self.output_dir = os.path.join(tmpdir, "test_output")
+            self.output_dir = os.path.join(tmpdir, "output")
             # instantiate PDFCompressor object for tests
 
             self.PDFComp = compress_pdf.PDFCompressor(
@@ -143,8 +147,8 @@ class TestShrinkFiles(TestCase):
         self.PDFComp.generate_source_dict()
         source_dict = self.PDFComp.source_dict
         self.assertEqual(type(source_dict), dict)
-        self.assertEqual(len(source_dict), self.dir_depth)
-        self.assertListEqual(self.dir_list, list(source_dict.keys()))
+        self.assertEqual(len(source_dict), self.dir_count)
+        self.assertListEqual(sorted(self.dir_list), sorted(list(source_dict.keys())))
 
     def test_generate_output_dict(self):
         """Ensure generate_output_dict returns mirrored dict"""
@@ -165,7 +169,7 @@ class TestShrinkFiles(TestCase):
         self.PDFComp.generate_dict_metrics(source=True)
         source_dict = self.PDFComp.source_dict
         self.assertEqual(type(source_dict), dict)
-        self.assertEqual(self.dir_depth, len(source_dict))
+        self.assertEqual(self.dir_count, len(source_dict))
         for dir_dict in source_dict.values():
             for dir_metric in dir_dict.keys():
                 self.assertIn(dir_metric, ["files", "count", "f_bytes", "d_bytes"])
