@@ -69,10 +69,19 @@ class TestArgparseUserOptions(TestCase):
             "test", [self.test_args_dict]
         )
 
-    def test_add_args_returns_parser(self):
-        """Ensure add_arg returns parser with input dict args"""
+    def test_add_args_dict_returns_parser(self):
+        """Ensure add_args_dict returns parser with input dict args"""
         parser = argparse.ArgumentParser()
-        parser = self.UserOptions.add_args(parser, self.test_args_dict)
+        parser = self.UserOptions.add_args_dict(parser, self.test_args_dict)
+        args = parser.parse_args(self.test_inputs)
+        self.assertIsInstance(parser, argparse.ArgumentParser)
+        for arg in self.test_args:
+            self.assertTrue(arg in dir(args))
+
+    def test_add_args_returns_parser(self):
+        """Ensure add_args returns parser with input dict args"""
+        parser = argparse.ArgumentParser()
+        parser = self.UserOptions.add_args(parser, [self.test_args_dict])
         args = parser.parse_args(self.test_inputs)
         self.assertIsInstance(parser, argparse.ArgumentParser)
         for arg in self.test_args:
@@ -84,6 +93,14 @@ class TestArgparseUserOptions(TestCase):
         parser = self.UserOptions.generate_parser(
             self.test_description, [self.test_args_dict], test_epilog
         )
+        self.assertIsInstance(parser, argparse.ArgumentParser)
+        self.assertEqual(parser.description, self.test_description)
+        self.assertEqual(parser.epilog, test_epilog)
+
+    def test_generate_parser_returns_parser_no_dict_list_or_epilog(self):
+        """Ensure generate_parser returns parser when no dict_list or epilog provided"""
+        test_epilog = None
+        parser = self.UserOptions.generate_parser(self.test_description)
         self.assertIsInstance(parser, argparse.ArgumentParser)
         self.assertEqual(parser.description, self.test_description)
         self.assertEqual(parser.epilog, test_epilog)
