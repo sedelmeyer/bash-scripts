@@ -64,7 +64,7 @@ class TestShrinkFiles(TestCase):
             self.tmpdir = tmpdir = stack.enter_context(tempfile.TemporaryDirectory())
             # set patch for subprocess.run to prevent accidental commands from running
             self.mocked_run = stack.enter_context(
-                mock.patch("compress_pdfs.subprocess.run")
+                mock.patch("python_scripts.compress_pdfs.subprocess.run")
             )
             self.mocked_run.return_value = self.mocked_run
             self.mocked_run.returncode = 0
@@ -181,7 +181,9 @@ class TestShrinkFiles(TestCase):
             formatted_value = self.PDFComp.format_bytes_value(bytes_value)
             self.assertEqual(formatted_value, test_value)
 
-    @mock.patch("compress_pdfs.command_run_external_pkg", "cp <SOURCE> <OUTPUT>")
+    @mock.patch(
+        "python_scripts.compress_pdfs.command_run_external_pkg", "cp <SOURCE> <OUTPUT>"
+    )
     def test_run_external_pkg_command(self):
         """Ensure external pkg command runs successfully for all files in directory"""
         self.PDFComp.generate_source_dict()
@@ -189,7 +191,9 @@ class TestShrinkFiles(TestCase):
         self.PDFComp.run_external_pkg_command(self.source_dir, self.output_dir)
         self.assertTrue(os.path.isfile(os.path.join(self.output_dir, "test0.txt")))
 
-    @mock.patch("compress_pdfs.command_run_external_pkg", "cp <SOURCE> <OUTPUT>")
+    @mock.patch(
+        "python_scripts.compress_pdfs.command_run_external_pkg", "cp <SOURCE> <OUTPUT>"
+    )
     def test_iterate_directories_external_pkg_command(self):
         """Ensure external pkg command runs successfully for all files in directory"""
         self.PDFComp.recursive = True
