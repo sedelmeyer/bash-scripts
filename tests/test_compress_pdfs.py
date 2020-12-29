@@ -1,3 +1,4 @@
+import argparse
 import contextlib
 import os
 import sys
@@ -52,6 +53,52 @@ class TestBuildData(TestCase):
         """Ensure temp directories exist after build"""
         for dirname in self.dirlist:
             self.assertTrue(os.path.isdir(dirname))
+
+
+class TestArgparseUserOptions(TestCase):
+    """Tests that ArgparseUserOptions class functions as expected"""
+
+    def setUp(self):
+        self.test_description = "Test description"
+        self.test_args = ["arg1", "arg2"]
+        self.test_args_dict = {
+            arg: {"flags": [arg], "options": {"type": str}} for arg in self.test_args
+        }
+        self.test_inputs = ["test{}".format(i) for i in range(len(self.test_args_dict))]
+        self.UserOptions = compress_pdfs.ArgparseUserOptions(
+            "test", [self.test_args_dict]
+        )
+
+    def test_add_args_returns_parser(self):
+        """Ensure add_arg returns parser with input dict args"""
+        parser = argparse.ArgumentParser()
+        parser = self.UserOptions.add_args(parser, self.test_args_dict)
+        args = parser.parse_args(self.test_inputs)
+        self.assertIsInstance(parser, argparse.ArgumentParser)
+        for arg in self.test_args:
+            self.assertTrue(arg in dir(args))
+
+    def test_generate_parser_returns_parser(self):
+        """Ensure generate parser returns parser"""
+        test_epilog = "Test epilog"
+        parser = self.UserOptions.generate_parser(
+            self.test_description, [self.test_args_dict], test_epilog
+        )
+        self.assertIsInstance(parser, argparse.ArgumentParser)
+        self.assertEqual(parser.description, self.test_description)
+        self.assertEqual(parser.epilog, test_epilog)
+
+    def test_init_parser_attribute_exists(self):
+        """Ensure self.parser attribute exists after class initialization"""
+        self.assertIsInstance(self.UserOptions.parser, argparse.ArgumentParser)
+
+    def test_parse_args_returns_args(self):
+        """Ensure parse_arges returns parsed args"""
+        args = self.UserOptions.parse_args(self.test_inputs)
+        for arg in self.test_args:
+            self.assertTrue(arg in args)
+        for val, arg in zip(self.test_inputs, [args.arg1, args.arg2]):
+            self.assertEqual(val, arg)
 
 
 class TestShrinkFiles(TestCase):

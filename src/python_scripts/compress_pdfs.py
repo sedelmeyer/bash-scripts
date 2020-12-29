@@ -51,6 +51,7 @@ REQUIREMENTS:
      * Calculate and report absolute size reduction and compression rate
 
 """
+import argparse
 import glob
 import os
 import shlex
@@ -66,6 +67,67 @@ command_run_external_pkg = (
     "-dPrinted=false -dPDFSETTINGS=/<QUALITY> -dNOPAUSE -dQUIET -dBATCH "
     '-sOutputFile="<OUTPUT>" "<SOURCE>"'
 )
+
+parser_description = "CLI script description"
+
+required_args_dict = {
+    "Required Arg 1": {
+        "flags": ["flag_name_1"],
+        "options": {
+            "type": str,
+            "help": "description of required arg 1",
+        },
+    },
+    "Required Arg 2": {
+        "flags": ["flag_name_2"],
+        "options": {
+            "type": str,
+            "help": "description of required arg 2",
+        },
+    },
+}
+
+optional_args_dict = {
+    "Optional Arg 1": {
+        "flags": ["-f", "--flag"],
+        "options": {
+            "type": str,
+            "default": "option 1",
+            "choices": ["option 1", "option 2"],
+            "help": 'description of optional arg, default="option 1"',
+        },
+    },
+}
+
+
+class ArgparseUserOptions:
+    """Generate argparse user options for script CLI"""
+
+    def __init__(self, description, args_dict_list, epilog=None):
+        self.parser = self.generate_parser(description, args_dict_list, epilog)
+
+    def generate_parser(self, description, args_dict_list, epilog):
+        """Generates parser with all input arguments"""
+        parser = argparse.ArgumentParser(
+            description=description,
+            epilog=epilog,
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+        )
+        for args_dict in args_dict_list:
+            parser = self.add_args(parser, args_dict)
+
+        return parser
+
+    def add_args(self, parser, args_dict):
+        """Executes parser.add_argument for all args_dict sub-dictionaries"""
+        for arg, arg_dict in args_dict.items():
+            parser.add_argument(*arg_dict["flags"], **arg_dict["options"])
+
+        return parser
+
+    def parse_args(self, args):
+        """Parses arguments based on CLI input"""
+        return self.parser.parse_args(args)
 
 
 class PDFCompressor:
