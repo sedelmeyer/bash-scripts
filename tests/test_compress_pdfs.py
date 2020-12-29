@@ -5,8 +5,7 @@ import tempfile
 from unittest import TestCase
 from unittest import mock
 
-sys.path.append("..")
-import compress_pdf  # noqa: E402
+import python_scripts.compress_pdfs as compress_pdfs
 
 source_dirtree = {
     "source": ["test0a.txt", "test0b.txt"],
@@ -65,7 +64,7 @@ class TestShrinkFiles(TestCase):
             self.tmpdir = tmpdir = stack.enter_context(tempfile.TemporaryDirectory())
             # set patch for subprocess.run to prevent accidental commands from running
             self.mocked_run = stack.enter_context(
-                mock.patch("compress_pdf.subprocess.run")
+                mock.patch("python_scripts.compress_pdfs.subprocess.run")
             )
             self.mocked_run.return_value = self.mocked_run
             self.mocked_run.returncode = 0
@@ -89,7 +88,7 @@ class TestShrinkFiles(TestCase):
             self.output_dir = os.path.join(tmpdir, "output")
             # instantiate PDFCompressor object for tests
 
-            self.PDFComp = compress_pdf.PDFCompressor(
+            self.PDFComp = compress_pdfs.PDFCompressor(
                 source_dir=self.dir_list[0], output_dir=self.output_dir, ext_type=".txt"
             )
             # reset mock so we can assert calls in test cases
@@ -101,7 +100,7 @@ class TestShrinkFiles(TestCase):
     def test_init_pkg_exists(self):
         """Ensure installed package returns ``True``"""
         self.mocked_run.returncode = 0
-        PDFComp = compress_pdf.PDFCompressor(self.source_dir, "test")
+        PDFComp = compress_pdfs.PDFCompressor(self.source_dir, "test")
         self.mocked_run.assert_called_once()
         self.assertTrue(PDFComp.pkg_exists)
 
@@ -109,28 +108,28 @@ class TestShrinkFiles(TestCase):
         """Ensure uninstalled package raises error"""
         self.mocked_run.returncode = 1
         with self.assertRaises(SystemError):
-            compress_pdf.PDFCompressor(self.source_dir, "test")
+            compress_pdfs.PDFCompressor(self.source_dir, "test")
             self.mocked_run.assert_called_once()
 
     def test_check_source_dir_exists(self):
         """Ensure valid source_dir creates self.source_dir attribute"""
-        PDFComp = compress_pdf.PDFCompressor(self.source_dir, "test")
+        PDFComp = compress_pdfs.PDFCompressor(self.source_dir, "test")
         self.assertEqual(self.source_dir, PDFComp.source_dir)
 
     def test_check_source_dir_does_not_exist(self):
         """Ensure invalid source_dir raises ValueError"""
         with self.assertRaises(ValueError):
-            compress_pdf.PDFCompressor("test", "test")
+            compress_pdfs.PDFCompressor("test", "test")
 
     def test_check_output_dir_exists(self):
         """Ensure invalid output_dir creates self.output_dir attribute"""
-        PDFComp = compress_pdf.PDFCompressor(self.source_dir, self.output_dir)
+        PDFComp = compress_pdfs.PDFCompressor(self.source_dir, self.output_dir)
         self.assertEqual(self.output_dir, PDFComp.output_dir)
 
     def test_check_output_dir_does_not_exist(self):
         """Ensure existing output_dir raises ValueError"""
         with self.assertRaises(ValueError):
-            compress_pdf.PDFCompressor(self.source_dir, self.source_dir)
+            compress_pdfs.PDFCompressor(self.source_dir, self.source_dir)
 
     def test_generate_source_dict_recurse_false(self):
         """Ensure make_dir_list method returns only source_dir when recurse==False"""
@@ -182,7 +181,9 @@ class TestShrinkFiles(TestCase):
             formatted_value = self.PDFComp.format_bytes_value(bytes_value)
             self.assertEqual(formatted_value, test_value)
 
-    @mock.patch("compress_pdf.command_run_external_pkg", "cp <SOURCE> <OUTPUT>")
+    @mock.patch(
+        "python_scripts.compress_pdfs.command_run_external_pkg", "cp <SOURCE> <OUTPUT>"
+    )
     def test_run_external_pkg_command(self):
         """Ensure external pkg command runs successfully for all files in directory"""
         self.PDFComp.generate_source_dict()
@@ -190,7 +191,9 @@ class TestShrinkFiles(TestCase):
         self.PDFComp.run_external_pkg_command(self.source_dir, self.output_dir)
         self.assertTrue(os.path.isfile(os.path.join(self.output_dir, "test0.txt")))
 
-    @mock.patch("compress_pdf.command_run_external_pkg", "cp <SOURCE> <OUTPUT>")
+    @mock.patch(
+        "python_scripts.compress_pdfs.command_run_external_pkg", "cp <SOURCE> <OUTPUT>"
+    )
     def test_iterate_directories_external_pkg_command(self):
         """Ensure external pkg command runs successfully for all files in directory"""
         self.PDFComp.recursive = True
