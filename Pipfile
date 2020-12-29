@@ -12,6 +12,7 @@ black = "==20.8b1"
 isort = "*"
 
 [packages]
+python_scripts = {editable = true,path = "."}
 
 [requires]
 python_version = "3.7"
