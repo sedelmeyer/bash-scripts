@@ -103,25 +103,33 @@ optional_args_dict = {
 class ArgparseUserOptions:
     """Generate argparse user options for script CLI"""
 
-    def __init__(self, description, args_dict_list, epilog=None):
+    def __init__(self, description, args_dict_list=None, epilog=None):
         self.parser = self.generate_parser(description, args_dict_list, epilog)
 
-    def generate_parser(self, description, args_dict_list, epilog):
+    def generate_parser(self, description, args_dict_list=None, epilog=None):
         """Generates parser with all input arguments"""
         parser = argparse.ArgumentParser(
             description=description,
             epilog=epilog,
             formatter_class=argparse.RawDescriptionHelpFormatter,
         )
-        for args_dict in args_dict_list:
-            parser = self.add_args(parser, args_dict)
+
+        if args_dict_list is not None:
+            parser = self.add_args(parser, args_dict_list)
 
         return parser
 
-    def add_args(self, parser, args_dict):
-        """Executes parser.add_argument for all args_dict sub-dictionaries"""
+    def add_args_dict(self, parser, args_dict):
+        """Executes parser.add_argument for all args in and args_dict"""
         for arg, arg_dict in args_dict.items():
             parser.add_argument(*arg_dict["flags"], **arg_dict["options"])
+
+        return parser
+
+    def add_args(self, parser, args_dict_list):
+        """Executes parser.add_argument for all args_dicts in an args_dict_list"""
+        for args_dict in args_dict_list:
+            parser = self.add_args_dict(parser, args_dict)
 
         return parser
 
