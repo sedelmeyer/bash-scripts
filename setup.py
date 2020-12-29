@@ -23,7 +23,7 @@ setup(
     name="python-shell-scripts",
     version="0.0.0",
     license="MIT",
-    description="Python scripts for Tech Grant processing tasks",
+    description="Python scripts for automating shell tasks",
     long_description="%s\n%s"
     % (
         re.compile("^.. start-badges.*^.. end-badges", re.M | re.S).sub(
